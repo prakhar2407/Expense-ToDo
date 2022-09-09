@@ -14,6 +14,7 @@ import ExpenseList from "../ExpenseList/ExpenseList";
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { SnackbarEnum } from "../../enum/SnackbarEnum";
+import "./ExpenseForm.css";
 
 
 export default function ExpenseForm() {
@@ -31,7 +32,12 @@ export default function ExpenseForm() {
     const [remarks, setRemarks] = useState<string>("");
     const [url, setUrl] = useState<string>("");
     const [expenses, setExpenses] = useState<Expense[]>([]);
+    const [searchId, setSearchId] = useState<number | null>(null);
+    const [searchExpense, setSearchExpense] = useState<Expense | null>(null);
 
+    const handleSearchIdChange = (event: any) => {
+        setSearchId(event.target.value);
+    }
     const handleNameChange = (event: any) => {
         setName(event.target.value);
     };
@@ -111,7 +117,7 @@ export default function ExpenseForm() {
             <Grid
                 container
                 justifyContent="center"
-                style={{ minHeight: '80vh' }}
+                style={{ minHeight: '62vh' }}
             >
                 <Box sx={{ width: '30%' }}>
                     <Stack spacing={2}>
@@ -144,6 +150,51 @@ export default function ExpenseForm() {
                     }} variant="contained">Get All Expenses</Button>
                 </Box>
             </Grid>
+            <Stack>
+                <div style={{ textAlign: "center" }}>
+                    <h2>Search Expense By Id</h2>
+                    <TextField size="small" onChange={handleSearchIdChange} value={searchId} id="outlined-basic" label="Search Expense (Enter ID)" variant="outlined" />
+                    <Button variant="contained" style={{ marginLeft: "5px" }} onClick={() => {
+                        axios.get(`expenses/${searchId}`).then((res) => {
+                            setSearchExpense(res.data);
+                            if (!res.data) {
+                                setSeverity(SnackbarEnum.ERROR);
+                                setMessage("No Expense Found")
+                                setOpenSnackBar(true)
+                            }
+                            else {
+                                setSeverity(SnackbarEnum.SUCCESS);
+                                setMessage("Expense Fetched Successfully")
+                                setOpenSnackBar(true)
+                            }
+                        }).catch(() => {
+                            setSeverity(SnackbarEnum.ERROR);
+                            setMessage("Some Error Occured")
+                            setOpenSnackBar(true)
+                        })
+                    }}>Search</Button>
+                    <table className="styled-table" style={{ marginTop: "10px", width: "500px", marginLeft: "auto", marginRight: "auto" }}>
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Name</th>
+                                <th>Cost</th>
+                                <th>Remarks</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{searchExpense?.id}</td>
+                                <td>{searchExpense?.name}</td>
+                                <td>{searchExpense?.cost}</td>
+                                <td>{searchExpense?.remarks}</td>
+                                <td>{searchExpense?.url}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </Stack>
             <Snackbar open={openSnackBar} autoHideDuration={6000} onClose={handleClose}>
                 <Alert onClose={handleClose} severity={severity} sx={{ width: '100%' }}>
                     {message}
